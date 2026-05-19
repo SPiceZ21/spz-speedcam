@@ -1,0 +1,379 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --orange:      #FF6200;
+  --orange-dim:  rgba(255, 98, 0, 0.15);
+  --orange-glow: rgba(255, 98, 0, 0.35);
+  --red:         #ef4444;
+  --green:       #22c55e;
+  --gray-950:    #080a0d;
+  --gray-900:    #0e1014;
+  --gray-800:    #1a1e26;
+  --gray-700:    #252b36;
+  --gray-500:    #4a5568;
+  --gray-400:    #718096;
+  --gray-200:    #cbd5e0;
+  --gray-100:    #e2e8f0;
+  --gray-50:     #f7fafc;
+  --font-mono:   'Consolas', 'Monaco', monospace;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Camera flash ─────────────────────────────────────────────────────────── */
+
+#flash {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+#flash.fire {
+  animation: cam-flash 0.35s ease-out forwards;
+}
+
+@keyframes cam-flash {
+  0%   { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+/* ── Scan line (photo effect) ────────────────────────────────────────────── */
+
+#flash.fire::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  animation: scan-line 0.35s linear forwards;
+}
+
+@keyframes scan-line {
+  0%   { top: 0; }
+  100% { top: 100%; }
+}
+
+/* ── Capture card ─────────────────────────────────────────────────────────── */
+
+#capture {
+  position: fixed;
+  bottom: 80px;
+  right: 28px;
+  width: 280px;
+  background: rgba(8, 10, 13, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 24px 48px rgba(0,0,0,0.7);
+  transform: translateY(20px);
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+  z-index: 50;
+}
+
+#capture.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+#capture.hiding {
+  transform: translateY(20px);
+  opacity: 0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* ── Card header ─────────────────────────────────────────────────────────── */
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.header-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cam-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--orange-dim);
+  border: 1px solid rgba(255,98,0,0.25);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cam-icon svg { color: var(--orange); }
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+.flash-badge {
+  width: 8px;
+  height: 8px;
+  background: var(--orange);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--orange);
+  animation: pulse-dot 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.7); }
+}
+
+/* ── Camera name ─────────────────────────────────────────────────────────── */
+
+.cam-location {
+  padding: 8px 14px 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gray-400);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Speed display ───────────────────────────────────────────────────────── */
+
+.speed-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 10px 14px 12px;
+}
+
+.speed-value {
+  font-family: var(--font-mono);
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--gray-50);
+  letter-spacing: -2px;
+}
+
+.speed-value.fast  { color: #f59e0b; }
+.speed-value.sonic { color: var(--red); text-shadow: 0 0 20px rgba(239,68,68,0.4); }
+
+.speed-unit {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gray-400);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+/* ── Record badges ───────────────────────────────────────────────────────── */
+
+.badges {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 14px 12px;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badge-global {
+  background: rgba(255, 98, 0, 0.12);
+  border: 1px solid rgba(255, 98, 0, 0.3);
+  color: var(--orange);
+}
+
+.badge-personal {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  color: var(--green);
+}
+
+.badge-improvement {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--gray-400);
+}
+
+/* ── Dismiss progress bar ────────────────────────────────────────────────── */
+
+.dismiss-bar {
+  height: 2px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+.dismiss-progress {
+  height: 100%;
+  background: var(--orange);
+  width: 100%;
+  transform-origin: left;
+  transition: width linear;
+}
+
+/* ── Records panel ───────────────────────────────────────────────────────── */
+
+#records-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  width: 460px;
+  max-height: 70vh;
+  background: rgba(8, 10, 13, 0.96);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 32px 64px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 200;
+}
+
+#records-panel.visible {
+  opacity: 1;
+  pointer-events: all;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+
+.close-btn {
+  width: 24px;
+  height: 24px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 5px;
+  cursor: pointer;
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-400);
+  font-size: 14px;
+  transition: background 0.15s;
+}
+
+.close-btn:hover { background: rgba(255,255,255,0.1); color: var(--gray-50); }
+
+.panel-scroll {
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-700) transparent;
+}
+
+.record-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.record-row:hover { background: rgba(255,255,255,0.02); }
+
+.record-cam {
+  flex: 1;
+  min-width: 0;
+}
+
+.record-cam-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-100);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record-cam-date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gray-500);
+  margin-top: 2px;
+}
+
+.record-speed {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--orange);
+  flex-shrink: 0;
+  letter-spacing: -0.5px;
+}
+
+.record-speed span {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gray-500);
+  margin-left: 2px;
+}
+
+.empty-msg {
+  padding: 48px 24px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--gray-500);
+}
