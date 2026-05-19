@@ -45,7 +45,7 @@ SpeedCams = {
     {
         id     = "chumash_pass",
         name   = "Chumash Coast Road",
-        coords = vector3(-3254.1, 1047.5, 12.5),
+        coords = vector3(-2697.2910, 2369.3394, 16.1105),
     },
     {
         id     = "paleto_bay_rd",
