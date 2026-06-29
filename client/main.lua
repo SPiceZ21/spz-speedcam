@@ -1,13 +1,5 @@
 -- client/main.lua
 
-local SPZ = nil
-Citizen.CreateThread(function()
-    while not SPZ do
-        pcall(function() SPZ = exports["spz-lib"]:GetCoreObject() end)
-        if not SPZ then Citizen.Wait(500) end
-    end
-end)
-
 -- ── State ─────────────────────────────────────────────────────────────────────
 
 local inZone      = {}   -- [camId] = true while player is inside radius
@@ -94,32 +86,28 @@ RegisterNetEvent("spz-speedcam:newGlobalRecord", function(data)
     )
     local unit = Config.Units == 'mph' and 'MPH' or 'KM/H'
 
-    -- Notify all players via SPZ notify if available
-    if SPZ and SPZ.Notify then
-        SPZ.Notify(
-            ("🏎 NEW RECORD — %s\n%s reached %d %s on %s"):format(
-                data.cameraName,
-                data.playerName,
-                displaySpeed,
-                unit,
-                data.vehicleModel or "unknown vehicle"
-            ),
-            "info"
-        )
-    end
+    lib.notify({
+        description = ("NEW RECORD — %s\n%s reached %d %s on %s"):format(
+            data.cameraName,
+            data.playerName,
+            displaySpeed,
+            unit,
+            data.vehicleModel or "unknown vehicle"
+        ),
+        type = "info"
+    })
 end)
 
 -- ── Records command ───────────────────────────────────────────────────────────
 
 RegisterCommand(Config.RecordsCommand, function()
-    if not SPZ then return end
-    SPZ.Callbacks.Trigger("spz-speedcam:getPersonalBests", {}, function(records)
+    lib.callback("spz-speedcam:getPersonalBests", false, function(records)
         if not records or #records == 0 then
             SendNUIMessage({ type = "records", records = {}, cameraList = SpeedCams })
             return
         end
         SendNUIMessage({ type = "records", records = records, cameraList = SpeedCams })
-    end)
+    end, {})
     SendNUIMessage({ type = "openRecords" })
     SetNuiFocus(true, true)
 end, false)

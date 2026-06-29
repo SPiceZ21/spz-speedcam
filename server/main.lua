@@ -1,12 +1,6 @@
 -- server/main.lua
 
-local SPZ = nil
 Citizen.CreateThread(function()
-    while not SPZ do
-        pcall(function() SPZ = exports["spz-lib"]:GetCoreObject() end)
-        if not SPZ then Citizen.Wait(500) end
-    end
-
     -- ── Schema ────────────────────────────────────────────────────────────────
 
     MySQL.query([[
@@ -105,7 +99,7 @@ Citizen.CreateThread(function()
     -- ── SPZ Callbacks ─────────────────────────────────────────────────────────
 
     -- Get top N speeds for a specific camera
-    SPZ.Callbacks.Register("spz-speedcam:getCameraRecords", function(source, cb, data)
+    lib.callback.register("spz-speedcam:getCameraRecords", function(source, data)
         local camId = data and data.cameraId
         local limit = math.min(data and data.limit or 10, 50)
 
@@ -119,7 +113,7 @@ Citizen.CreateThread(function()
                 ORDER BY sb.speed_kmh DESC
                 LIMIT ?
             ]], { camId, limit })
-            cb(rows or {})
+            return rows or {}
         else
             -- All cameras: global record per camera
             local rows = MySQL.query.await([[
@@ -134,14 +128,14 @@ Citizen.CreateThread(function()
                 )
                 ORDER BY sb.speed_kmh DESC
             ]], {})
-            cb(rows or {})
+            return rows or {}
         end
     end)
 
     -- Get player's personal bests across all cameras
-    SPZ.Callbacks.Register("spz-speedcam:getPersonalBests", function(source, cb)
+    lib.callback.register("spz-speedcam:getPersonalBests", function(source)
         local ok, profile = pcall(function() return exports["spz-identity"]:GetProfile(source) end)
-        if not ok or not profile then return cb({}) end
+        if not ok or not profile then return {} end
 
         local rows = MySQL.query.await([[
             SELECT camera_id, speed_kmh, vehicle_model, updated_at
@@ -149,7 +143,7 @@ Citizen.CreateThread(function()
             WHERE player_id = ?
             ORDER BY speed_kmh DESC
         ]], { profile.id })
-        cb(rows or {})
+        return rows or {}
     end)
 
     print("^2[spz-speedcam] Server ready — " .. #SpeedCams .. " cameras active^7")
