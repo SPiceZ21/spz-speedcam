@@ -7,6 +7,7 @@ version '1.0.0'
 author 'SPiceZ-Core'
 
 shared_scripts {
+  '@ox_lib/init.lua',
   'shared/cameras.lua',
 }
 
