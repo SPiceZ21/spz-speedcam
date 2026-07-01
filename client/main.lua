@@ -35,8 +35,9 @@ Citizen.CreateThread(function()
                 if inside and not inZone[cam.id] and not onCooldown[cam.id] then
                     local speedMs  = GetEntitySpeed(vehicle)
                     local speedKmh = speedMs * 3.6
+                    local minSpeed = cam.minSpeedKmh or Config.MinSpeedKmh
 
-                    if speedKmh >= Config.MinSpeedKmh then
+                    if speedKmh >= minSpeed then
                         TriggerServerEvent("spz-speedcam:capture", cam.id, speedKmh, GetEntityModel(vehicle))
 
                         onCooldown[cam.id] = true
