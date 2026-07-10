@@ -384,3 +384,45 @@ html, body {
   font-size: 12px;
   color: var(--gray-500);
 }
+
+/* ── Modular tile grid (matches raceUI) ─────────────────────────────────── */
+.cap-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 10px 12px 4px;
+}
+.cap-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+}
+.cap-loc-tile { grid-column: 1 / -1; }   /* location spans full width */
+
+.cap-label {
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* neutralise the old stacked padding inside tiles */
+.cap-tile .cam-location {
+  padding: 0;
+  font-size: 12px;
+  color: var(--gray-100);
+}
+.cap-tile .speed-row {
+  padding: 0;
+  align-items: flex-end;
+  gap: 5px;
+}
+.cap-tile .speed-value { font-size: 34px; line-height: 1; }
+.cap-tile .speed-unit  { font-size: 11px; margin-bottom: 4px; }
+.cap-speed-tile { grid-column: 1 / -1; }
