@@ -3,19 +3,7 @@
 Citizen.CreateThread(function()
     -- ── Schema ────────────────────────────────────────────────────────────────
 
-    MySQL.query([[
-        CREATE TABLE IF NOT EXISTS `speedcam_bests` (
-            `id`            INT           AUTO_INCREMENT PRIMARY KEY,
-            `camera_id`     VARCHAR(32)   NOT NULL,
-            `player_id`     INT           NOT NULL,
-            `speed_kmh`     FLOAT         NOT NULL,
-            `vehicle_model` VARCHAR(64)   NULL,
-            `updated_at`    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            UNIQUE KEY uq_cam_player (camera_id, player_id),
-            INDEX idx_camera (camera_id),
-            INDEX idx_player (player_id)
-        )
-    ]])
+    -- Schema (speedcam_bests) is owned by spz-core/migrations/003_module_tables.sql
 
     -- ── Capture event (Client → Server) ──────────────────────────────────────
 
