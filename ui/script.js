@@ -47,15 +47,18 @@ function showCapture(data) {
   speedUnit.textContent  = cardUnit;
   camLocation.textContent = data.cameraName || 'Unknown Location';
 
-  // Badges
-  badges.innerHTML = '';
-
+  // World-record tag — floats ABOVE the box, not inside it
+  const capGlobal = document.getElementById('cap-global');
   if (data.globalRecord) {
-    const b = document.createElement('div');
-    b.className = 'badge badge-global';
-    b.innerHTML = ICONS.trophy + ' NEW WORLD RECORD';
-    badges.appendChild(b);
+    capGlobal.innerHTML = ICONS.trophy + ' NEW WORLD RECORD';
+    capGlobal.classList.add('show');
+  } else {
+    capGlobal.innerHTML = '';
+    capGlobal.classList.remove('show');
   }
+
+  // Badges (inside the box)
+  badges.innerHTML = '';
 
   if (data.personalBest && !data.globalRecord) {
     const b = document.createElement('div');
@@ -92,6 +95,8 @@ function showCapture(data) {
 function hideCapture() {
   capture.classList.remove('visible');
   capture.classList.add('hiding');
+  const capGlobal = document.getElementById('cap-global');
+  if (capGlobal) capGlobal.classList.remove('show');
   dismissTimer = null;
 }
 
@@ -167,3 +172,63 @@ document.addEventListener('keydown', e => {
 
 // Close btn
 document.getElementById('close-records-btn').addEventListener('click', hideRecords);
+
+// ── Browser preview (no FiveM) ──────────────────────────────────────────────
+// Open index.html directly in a browser to preview. Buttons re-trigger the
+// card / records with mock data. Does nothing inside the FiveM NUI.
+(function () {
+  const inNui = typeof GetParentResourceName === 'function';
+  if (inNui) return;
+
+  document.body.style.pointerEvents = 'auto';
+  document.body.style.background = '#11161d';   // stand-in backdrop
+
+  const MOCK_CAPTURE = {
+    type: 'capture',
+    cameraName: 'Vespucci Blvd',
+    speed: 168,
+    unit: 'KM/H',
+    personalBest: true,
+    globalRecord: false,
+    prevBest: 152,
+    duration: 6000,
+  };
+
+  const MOCK_RECORDS = {
+    type: 'records',
+    cameraList: [
+      { id: 'speedcam_vespucci_bvd', name: 'Vespucci Blvd' },
+      { id: 'speedcam_richman',      name: 'Richman' },
+      { id: 'speedcam_route68',      name: 'Route 68' },
+    ],
+    records: [
+      { camera_id: 'speedcam_route68',      speed_kmh: 214.6, updated_at: '2026-07-12' },
+      { camera_id: 'speedcam_vespucci_bvd', speed_kmh: 168.2, updated_at: '2026-07-13' },
+      { camera_id: 'speedcam_richman',      speed_kmh: 133.9, updated_at: '2026-07-10' },
+    ],
+  };
+
+  function bar(label, onClick) {
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.style.cssText =
+      'font:600 12px/1 sans-serif;padding:8px 12px;margin:0 6px 0 0;' +
+      'background:#FF6200;color:#000;border:0;border-radius:5px;cursor:pointer;';
+    b.onclick = onClick;
+    return b;
+  }
+
+  const dock = document.createElement('div');
+  dock.style.cssText = 'position:fixed;top:12px;left:12px;z-index:9999;pointer-events:auto;';
+  dock.appendChild(bar('▶ Capture',  () => showCapture(MOCK_CAPTURE)));
+  dock.appendChild(bar('★ Global',   () => showCapture({ ...MOCK_CAPTURE, cameraName: 'Route 68', speed: 231, globalRecord: true, personalBest: false })));
+  dock.appendChild(bar('🏁 Records',  () => showRecords(MOCK_RECORDS)));
+  dock.appendChild(bar('✕ Hide',     () => { hideCapture(); recordPanel.classList.remove('visible'); }));
+  document.body.appendChild(dock);
+
+  // records close button + Esc work without the NUI fetch
+  window.GetParentResourceName = window.GetParentResourceName || (() => 'preview');
+
+  // Auto-show the capture once on load
+  setTimeout(() => showCapture(MOCK_CAPTURE), 400);
+})();

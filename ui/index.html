@@ -11,10 +11,13 @@
   <!-- Camera flash overlay -->
   <div id="flash"></div>
 
-  <!-- Capture card (bottom-right, slides in on trigger) -->
+  <!-- Capture card — wide rectangle above the GTA minimap -->
   <div id="capture">
 
-    <div class="cap-top">
+    <!-- world-record tag floats above the box -->
+    <div class="cap-global" id="cap-global"></div>
+
+    <div class="cap-row">
       <div class="cam-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2.2"
@@ -24,12 +27,10 @@
         </svg>
       </div>
       <span class="cam-location" id="cam-location">—</span>
-      <div class="flash-badge"></div>
-    </div>
-
-    <div class="cap-main">
-      <span class="speed-value" id="speed-value">0</span>
-      <span class="speed-unit" id="speed-unit">KM/H</span>
+      <div class="cap-speed">
+        <span class="speed-value" id="speed-value">0</span>
+        <span class="speed-unit" id="speed-unit">KM/H</span>
+      </div>
       <div class="badges" id="badges"></div>
     </div>
 

@@ -77,25 +77,47 @@ html, body {
 
 /* ── Capture card ─────────────────────────────────────────────────────────── */
 
+/* Sits directly above the GTA V minimap (bottom-left), matching its width.
+   Tweak --map-left / --map-w / --map-top if your safezone differs. */
+:root {
+  --map-left: 1.6vw;    /* minimap left edge */
+  --map-w:    16.5vw;   /* minimap width */
+  --map-top:  22.5vh;   /* height of the map's top edge from bottom */
+}
+
 #capture {
   position: fixed;
-  bottom: 40px;
-  right: 40px;
-  width: 200px;
+  left: var(--map-left);
+  bottom: var(--map-top);
+  width: var(--map-w);
   background: rgba(8, 10, 13, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.6);
-  transform: translateX(16px);
+  border-radius: 4px;
+  overflow: visible;   /* let the world-record pill sit above the box */
+  box-shadow: 0 8px 22px rgba(0,0,0,0.6);
+  transform: translateY(12px);
   opacity: 0;
   transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease;
   z-index: 50;
 }
 
-#capture.visible { transform: translateX(0); opacity: 1; }
+#capture.visible { transform: translateY(0); opacity: 1; }
 
-#capture.hiding { transform: translateX(16px); opacity: 0; transition: transform 0.2s ease, opacity 0.2s ease; }
+#capture.hiding { transform: translateY(12px); opacity: 0; transition: transform 0.2s ease, opacity 0.2s ease; }
+
+/* Horizontal rectangle layout */
+.cap-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+}
+.cap-speed {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin-left: auto;   /* push speed + badges to the right edge */
+}
 
 /* ── Card header ─────────────────────────────────────────────────────────── */
 
@@ -427,4 +449,63 @@ html, body {
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+/* ── Wide-bar sizing overrides ─────────────────────────────── */
+#capture .cam-icon { width: 22px; height: 22px; border-radius: 4px; }
+#capture .cam-location {
+  padding: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-200);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#capture .speed-value { font-size: 24px; line-height: 1; letter-spacing: -0.5px; }
+#capture .speed-unit  { font-size: 9px; margin: 0; }
+
+/* badges inline, compact */
+#capture .badges { flex-direction: row; padding: 0; gap: 4px; }
+#capture .badge {
+  padding: 2px 5px;
+  font-size: 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ── World-record pill (floats above the box) ──────────────── */
+.cap-global {
+  position: absolute;
+  left: 0;
+  bottom: 100%;                 /* sit directly above the card */
+  margin-bottom: 6px;
+  display: none;
+  align-items: center;
+  gap: 5px;
+  width: max-content;           /* small — only as wide as the text */
+  max-width: 100%;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255, 98, 0, 0.16);
+  border: 1px solid rgba(255, 98, 0, 0.45);
+  color: var(--orange);
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.cap-global.show {
+  display: inline-flex;
+  animation: cap-global-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.cap-global svg { width: 10px; height: 10px; }
+@keyframes cap-global-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
