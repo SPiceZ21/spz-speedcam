@@ -152,7 +152,8 @@ window.addEventListener('message', e => {
       showCapture(msg);
       break;
     case 'openRecords':
-      // panel shown after records data arrives
+      recordsList.innerHTML = '<div class="empty-msg">Loading records...</div>';
+      recordPanel.classList.add('visible');
       break;
     case 'records':
       showRecords(msg);
@@ -165,7 +166,7 @@ window.addEventListener('message', e => {
 
 // Close records on Escape
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && recordPanel.classList.contains('visible')) {
+  if (e.key === 'Escape') {
     hideRecords();
   }
 });

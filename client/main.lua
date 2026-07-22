@@ -101,22 +101,44 @@ end)
 
 -- ── Records command ───────────────────────────────────────────────────────────
 
+local isRecordsOpen = false
+
+local function CloseRecordsNUI()
+    isRecordsOpen = false
+    SetNuiFocus(false, false)
+    SendNUIMessage({ type = "closeRecords" })
+end
+
 RegisterCommand(Config.RecordsCommand, function()
+    if isRecordsOpen then
+        CloseRecordsNUI()
+        return
+    end
+
+    isRecordsOpen = true
+    SetNuiFocus(true, true)
+    SendNUIMessage({ type = "openRecords" })
+
     lib.callback("spz-speedcam:getPersonalBests", false, function(records)
+        if not isRecordsOpen then return end
         if not records or #records == 0 then
             SendNUIMessage({ type = "records", records = {}, cameraList = SpeedCams })
             return
         end
         SendNUIMessage({ type = "records", records = records, cameraList = SpeedCams })
     end, {})
-    SendNUIMessage({ type = "openRecords" })
-    SetNuiFocus(true, true)
 end, false)
 
 RegisterKeyMapping(Config.RecordsCommand, "Speed Camera Records", "keyboard", "F7")
 
 RegisterNUICallback("closeRecords", function(_, cb)
+    isRecordsOpen = false
     SetNuiFocus(false, false)
-    SendNUIMessage({ type = "closeRecords" })
     cb("ok")
+end)
+
+AddEventHandler("onResourceStop", function(res)
+    if res == GetCurrentResourceName() then
+        SetNuiFocus(false, false)
+    end
 end)
