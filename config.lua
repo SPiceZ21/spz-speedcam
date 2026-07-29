@@ -12,3 +12,9 @@ Config.CardDurationMs  = 6000    -- how long the capture card stays on screen
 
 -- Records command
 Config.RecordsCommand  = 'speedrecords'
+
+-- Map blips for every speed camera.
+Config.ShowBlips   = true
+Config.BlipSprite  = 184     -- speed camera icon
+Config.BlipColour  = 1       -- red
+Config.BlipScale   = 0.8

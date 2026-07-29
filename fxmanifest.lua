@@ -20,6 +20,7 @@ server_scripts {
 client_scripts {
   'config.lua',
   'client/main.lua',
+  'client/blips.lua',
 }
 
 ui_page 'ui/index.html'
