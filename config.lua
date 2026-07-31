@@ -17,4 +17,5 @@ Config.RecordsCommand  = 'speedrecords'
 Config.ShowBlips   = true
 Config.BlipSprite  = 184     -- speed camera icon
 Config.BlipColour  = 1       -- red
-Config.BlipScale   = 0.8
+Config.BlipScale    = 0.7     -- minimap icon size
+Config.BlipCategory = 10      -- big-map legend group ("Speed Cameras")
