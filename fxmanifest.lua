@@ -34,6 +34,7 @@ files {
 
 dependencies {
   'ox_lib',
+  'spz-core',
   'spz-identity',
   'oxmysql',
 }

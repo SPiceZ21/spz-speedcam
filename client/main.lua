@@ -1,5 +1,17 @@
 -- client/main.lua
 
+-- Base theme (server.cfg spz_theme_* convars via spz-core).
+local function pushSpeedcamTheme(theme)
+    if theme and next(theme) then
+        SendNUIMessage({ type = 'theme', theme = theme })
+    end
+end
+CreateThread(function()
+    local ok, theme = pcall(function() return exports['spz-core']:GetTheme() end)
+    if ok then pushSpeedcamTheme(theme) end
+end)
+AddEventHandler('SPZ:themeUpdated', function(theme) pushSpeedcamTheme(theme) end)
+
 -- ── State ─────────────────────────────────────────────────────────────────────
 
 local inZone      = {}   -- [camId] = true while player is inside radius

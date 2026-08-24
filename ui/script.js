@@ -13,6 +13,26 @@ const recordsList = document.getElementById('records-list');
 let dismissTimer  = null;
 let cardUnit      = 'KM/H';
 
+// Base theme (server.cfg spz_theme_* convars, pushed from spz-core).
+const THEME_VARS = { accent: '--orange', danger: '--red' };
+// rgba(...) glows/tints reference these as raw components so they can carry
+// their own alpha — keep those in sync too.
+const THEME_RGB_VARS = { accent: '--orange-rgb', danger: '--red-rgb' };
+function hexToRgbTriplet(hex) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+  return m ? `${parseInt(m[1], 16)}, ${parseInt(m[2], 16)}, ${parseInt(m[3], 16)}` : null;
+}
+function applyTheme(theme) {
+  if (!theme) return;
+  for (const key in THEME_VARS) {
+    if (theme[key]) document.documentElement.style.setProperty(THEME_VARS[key], theme[key]);
+  }
+  for (const key in THEME_RGB_VARS) {
+    const rgb = theme[key] && hexToRgbTriplet(theme[key]);
+    if (rgb) document.documentElement.style.setProperty(THEME_RGB_VARS[key], rgb);
+  }
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function svgIcon(path, size = 14) {
@@ -148,6 +168,9 @@ window.addEventListener('message', e => {
   if (!msg || !msg.type) return;
 
   switch (msg.type) {
+    case 'theme':
+      applyTheme(msg.theme);
+      break;
     case 'capture':
       showCapture(msg);
       break;
@@ -214,7 +237,7 @@ document.getElementById('close-records-btn').addEventListener('click', hideRecor
     b.textContent = label;
     b.style.cssText =
       'font:600 12px/1 sans-serif;padding:8px 12px;margin:0 6px 0 0;' +
-      'background:#FF6200;color:#000;border:0;border-radius:5px;cursor:pointer;';
+      'background:var(--orange);color:#000;border:0;border-radius:5px;cursor:pointer;';
     b.onclick = onClick;
     return b;
   }
