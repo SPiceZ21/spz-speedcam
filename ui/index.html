@@ -14,8 +14,19 @@
   <!-- Capture card — wide rectangle above the GTA minimap -->
   <div id="capture">
 
-    <!-- world-record tag floats above the box -->
-    <div class="cap-global" id="cap-global"></div>
+    <!-- Plate + record pills float above the box, outside the card body -->
+    <div class="cap-pills">
+      <div class="cap-vehicle" id="cap-vehicle">
+        <!-- Real in-game plate texture + font atlas, drawn to canvas -->
+        <canvas class="plate" id="plate" width="512" height="256"></canvas>
+
+        <!-- record pills sit beside the plate -->
+        <div class="cap-records" id="cap-records">
+          <div class="cap-global" id="cap-global"></div>
+          <div class="badges" id="badges"></div>
+        </div>
+      </div>
+    </div>
 
     <div class="cap-row">
       <div class="cam-icon">
@@ -31,7 +42,6 @@
         <span class="speed-value" id="speed-value">0</span>
         <span class="speed-unit" id="speed-unit">KM/H</span>
       </div>
-      <div class="badges" id="badges"></div>
     </div>
 
     <div class="dismiss-bar">

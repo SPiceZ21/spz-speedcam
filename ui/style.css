@@ -79,18 +79,21 @@ html, body {
 
 /* ── Capture card ─────────────────────────────────────────────────────────── */
 
-/* Sits directly above the GTA V minimap (bottom-left), matching its width.
-   Tweak --map-left / --map-w / --map-top if your safezone differs. */
+/* Sits directly above the GTA V minimap (bottom-left) at its exact width.
+   The client pushes the real minimap rect (`minimap` NUI message) and script.js
+   overwrites these — the values below are only the 16:9 / default-safezone
+   fallback used when the card is opened outside FiveM. */
 :root {
   --map-left: 1.6vw;    /* minimap left edge */
   --map-w:    16.5vw;   /* minimap width */
-  --map-top:  22.5vh;   /* height of the map's top edge from bottom */
+  --map-top:  22.5vh;   /* map's top edge, measured from screen bottom */
+  --map-gap:  6px;      /* space between card and map */
 }
 
 #capture {
   position: fixed;
   left: var(--map-left);
-  bottom: var(--map-top);
+  bottom: calc(var(--map-top) + var(--map-gap));
   width: var(--map-w);
   background: rgba(8, 10, 13, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -111,14 +114,15 @@ html, body {
 .cap-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 6px 10px;
 }
 .cap-speed {
   display: flex;
   align-items: baseline;
-  gap: 3px;
-  margin-left: auto;   /* push speed + badges to the right edge */
+  gap: 2px;
+  margin-left: auto;   /* push speed to the right edge */
+  flex-shrink: 0;
 }
 
 /* ── Card header ─────────────────────────────────────────────────────────── */
@@ -454,7 +458,8 @@ html, body {
 }
 
 /* ── Wide-bar sizing overrides ─────────────────────────────── */
-#capture .cam-icon { width: 22px; height: 22px; border-radius: 4px; }
+#capture .cam-icon { width: 18px; height: 18px; border-radius: 4px; }
+#capture .cam-icon svg { width: 10px; height: 10px; }
 #capture .cam-location {
   padding: 0;
   font-size: 11px;
@@ -466,32 +471,92 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#capture .speed-value { font-size: 24px; line-height: 1; letter-spacing: -0.5px; }
-#capture .speed-unit  { font-size: 9px; margin: 0; }
+#capture .speed-value { font-size: 22px; line-height: 1; letter-spacing: -0.5px; }
+#capture .speed-unit  { font-size: 8px; margin: 0; }
 
-/* badges inline, compact */
-#capture .badges { flex-direction: row; padding: 0; gap: 4px; }
-#capture .badge {
-  padding: 2px 5px;
-  font-size: 8px;
-  border-radius: 3px;
-  white-space: nowrap;
+/* badges are pills stacked above the card, not part of the card body */
+#capture .badges { flex-direction: row; padding: 0; gap: 4px; margin: 0; width: auto; }
+#capture .badges:empty { display: none; }
+
+/* ── Plate row: number plate + record pills ────────────────── */
+
+/* Standalone pill above the card: plate left, record pills right. */
+.cap-vehicle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  padding: 3px 7px 3px 4px;
+  border-radius: 5px;
+  background: rgba(8, 10, 13, 0.94);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
-/* ── World-record pill (floats above the box) ──────────────── */
-.cap-global {
+/* Plate is a canvas painted with the game's own plate texture and glyph
+   atlas (see drawPlate in script.js) — 256x128 source, so 2:1. */
+.plate {
+  flex-shrink: 0;
+  display: block;
+  height: 38px;
+  width: 76px;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.55);
+}
+
+/* Standalone pills now — each carries its own dark backing so it stays
+   legible floating over the game world. */
+#capture .badge {
+  padding: 3px 7px;
+  font-size: 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+#capture .badge-personal {
+  background: linear-gradient(rgba(34, 197, 94, 0.14), rgba(34, 197, 94, 0.14)), rgba(8, 10, 13, 0.94);
+}
+#capture .badge-improvement {
+  background: linear-gradient(rgba(255,255,255,0.05), rgba(255,255,255,0.05)), rgba(8, 10, 13, 0.94);
+}
+
+/* ── Record pills (float above the box, outside the card) ──── */
+.cap-pills {
   position: absolute;
   left: 0;
   bottom: 100%;                 /* sit directly above the card */
   margin-bottom: 6px;
+  width: 100%;                  /* pills span the card / minimap width */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+/* Record pills sit beside the plate, on the same line. */
+.cap-records {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.cap-records.empty { display: none; }
+
+.cap-global {
   display: none;
   align-items: center;
   gap: 5px;
   width: max-content;           /* small — only as wide as the text */
   max-width: 100%;
   padding: 3px 8px;
+  line-height: 1.6;             /* match the mono badge pills' height */
   border-radius: 4px;
-  background: rgba(var(--orange-rgb), 0.16);
+  background: linear-gradient(rgba(var(--orange-rgb), 0.18), rgba(var(--orange-rgb), 0.18)), rgba(8, 10, 13, 0.94);
   border: 1px solid rgba(var(--orange-rgb), 0.45);
   color: var(--orange);
   font-family: var(--font-display);

@@ -6,6 +6,9 @@ const speedValue  = document.getElementById('speed-value');
 const speedUnit   = document.getElementById('speed-unit');
 const camLocation = document.getElementById('cam-location');
 const badges      = document.getElementById('badges');
+const capRecords  = document.getElementById('cap-records');
+const capVehicle  = document.getElementById('cap-vehicle');
+const plateEl     = document.getElementById('plate');
 const dismissBar  = document.getElementById('dismiss-progress');
 const recordPanel = document.getElementById('records-panel');
 const recordsList = document.getElementById('records-list');
@@ -47,6 +50,167 @@ const ICONS = {
   close:  svgIcon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'),
 };
 
+// ── Minimap anchor ────────────────────────────────────────────────────────────
+// The client pushes the real minimap rect (fractions of the screen) so the card
+// lines up with the map at any resolution / safezone setting.
+
+function applyMinimap(m) {
+  if (!m) return;
+  const root = document.documentElement.style;
+  root.setProperty('--map-left', `${m.left * 100}vw`);
+  root.setProperty('--map-w',    `${m.width * 100}vw`);
+  root.setProperty('--map-top',  `${(1 - m.top) * 100}vh`);
+}
+
+// ── Number plate ──────────────────────────────────────────────────────────────
+// Drawn from the game's own textures: the plate backgrounds (256x128) and the
+// shared glyph atlas `vehicle_generic_plate_font.png`. The atlas is greyscale
+// (16 columns x 32px rows, chars 0-9 then A-Z), so glyphs are cut out and
+// tinted per plate the way the game shades them.
+
+const PLATE_TEXTURES = {
+  0: 'plate01',        // Blue on White 1
+  1: 'plate02',        // Yellow on Black
+  2: 'plate03',        // Yellow on Blue
+  3: 'plate04',        // Blue on White 2
+  4: 'plate05',        // Blue on White 3 / SR Exempt
+  5: 'yankton_plate',  // North Yankton
+};
+
+// Ink colour + text box (in 256x128 texture space) per plate.
+const PLATE_INK = {
+  0: '#1d2b57',
+  1: '#f2c744',
+  2: '#f2c744',
+  3: '#1d2b57',
+  4: '#20242b',
+  5: '#2c2620',
+};
+
+const PLATE_TEXT_BOX = {
+  default: { x: 30, y: 48, w: 196, h: 44 },
+  5:       { x: 28, y: 56, w: 200, h: 40 },
+};
+
+const ATLAS_COLS = 16;
+const ATLAS_CELL_W = 16;
+const ATLAS_CELL_H = 32;
+const GLYPH_INSET_X = 2;      // inked columns inside a cell: 2 → 14
+const GLYPH_INSET_W = 12;
+const GLYPH_INSET_Y = 2;      // inked rows inside a cell
+const GLYPH_INSET_H = 28;
+
+const plateImages = {};
+let atlasMask = null;         // atlas re-cut as white glyphs on transparent
+
+function loadImage(src) {
+  if (plateImages[src]) return plateImages[src];
+  const img = new Image();
+  img.src = `plates/${src}.png`;
+  plateImages[src] = img;
+  return img;
+}
+
+// Turn the greyscale atlas into an alpha mask once, so glyphs can be tinted.
+function buildAtlasMask(img) {
+  const c = document.createElement('canvas');
+  c.width = img.width;
+  c.height = img.height;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+
+  const data = ctx.getImageData(0, 0, c.width, c.height);
+  const px = data.data;
+  // Each cell is a mid-grey block (~90-110) with the glyph face stamped
+  // brighter on top (~140-165); isolate the face, not the block.
+  const LO = 112, HI = 148;
+  for (let i = 0; i < px.length; i += 4) {
+    const a = Math.max(0, Math.min(1, (px[i] - LO) / (HI - LO)));
+    px[i] = px[i + 1] = px[i + 2] = 255;
+    px[i + 3] = Math.round(a * 255);
+  }
+  ctx.putImageData(data, 0, 0);
+  return c;
+}
+
+function charCell(ch) {
+  const code = ch.charCodeAt(0);
+  let idx = -1;
+  if (code >= 48 && code <= 57) idx = code - 48;        // 0-9
+  else if (code >= 65 && code <= 90) idx = code - 65 + 10; // A-Z
+  if (idx < 0) return null;
+  return {
+    x: (idx % ATLAS_COLS) * ATLAS_CELL_W,
+    y: Math.floor(idx / ATLAS_COLS) * ATLAS_CELL_H,
+  };
+}
+
+function drawPlate(text, index) {
+  const idx = PLATE_TEXTURES[index] !== undefined ? index : 0;
+  const bg = loadImage(PLATE_TEXTURES[idx]);
+  const atlas = loadImage('vehicle_generic_plate_font');
+
+  const ready = bg.complete && bg.naturalWidth && atlas.complete && atlas.naturalWidth;
+  if (!ready) {
+    // Both textures are local; retry once they decode.
+    Promise.all([bg.decode(), atlas.decode()])
+      .then(() => drawPlate(text, index))
+      .catch(() => {});
+    return;
+  }
+
+  if (!atlasMask) atlasMask = buildAtlasMask(atlas);
+
+  const ctx = plateEl.getContext('2d');
+  const scale = plateEl.width / 256;   // canvas is a multiple of texture size
+
+  ctx.clearRect(0, 0, plateEl.width, plateEl.height);
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(bg, 0, 0, plateEl.width, plateEl.height);
+
+  const chars = text.split('').map(charCell).filter(Boolean);
+  if (!chars.length) return;
+
+  const box = PLATE_TEXT_BOX[idx] || PLATE_TEXT_BOX.default;
+  // Fit the string inside the plate's text box, keeping the glyph aspect.
+  const advance = Math.min(box.w / chars.length, (box.h / GLYPH_INSET_H) * GLYPH_INSET_W * 1.15);
+  const glyphW  = advance / 1.15;
+  const glyphH  = glyphW * (GLYPH_INSET_H / GLYPH_INSET_W);
+  const startX  = box.x + (box.w - advance * chars.length) / 2 + (advance - glyphW) / 2;
+  const startY  = box.y + (box.h - glyphH) / 2;
+
+  // Glyphs are drawn as a mask, then flooded with the plate's ink colour.
+  const layer = document.createElement('canvas');
+  layer.width = plateEl.width;
+  layer.height = plateEl.height;
+  const lctx = layer.getContext('2d');
+  lctx.imageSmoothingQuality = 'high';
+
+  chars.forEach((cell, i) => {
+    lctx.drawImage(
+      atlasMask,
+      cell.x + GLYPH_INSET_X, cell.y + GLYPH_INSET_Y, GLYPH_INSET_W, GLYPH_INSET_H,
+      (startX + advance * i) * scale, startY * scale, glyphW * scale, glyphH * scale
+    );
+  });
+
+  lctx.globalCompositeOperation = 'source-in';
+  lctx.fillStyle = PLATE_INK[idx] || '#1d2b57';
+  lctx.fillRect(0, 0, layer.width, layer.height);
+
+  ctx.drawImage(layer, 0, 0);
+}
+
+function renderPlate(plate, index) {
+  const text = (plate || '').trim().toUpperCase();
+  if (!text) {
+    plateEl.style.display = 'none';
+    return;
+  }
+  plateEl.style.display = '';
+  drawPlate(text, index);
+}
+
 // ── Capture card ──────────────────────────────────────────────────────────────
 
 function showCapture(data) {
@@ -67,10 +231,12 @@ function showCapture(data) {
   speedUnit.textContent  = cardUnit;
   camLocation.textContent = data.cameraName || 'Unknown Location';
 
+  renderPlate(data.plate, data.plateIndex);
+
   // World-record tag — floats ABOVE the box, not inside it
   const capGlobal = document.getElementById('cap-global');
   if (data.globalRecord) {
-    capGlobal.innerHTML = ICONS.trophy + ' NEW WORLD RECORD';
+    capGlobal.innerHTML = ICONS.trophy + ' NEW WR';
     capGlobal.classList.add('show');
   } else {
     capGlobal.innerHTML = '';
@@ -80,10 +246,11 @@ function showCapture(data) {
   // Badges (inside the box)
   badges.innerHTML = '';
 
-  if (data.personalBest && !data.globalRecord) {
+  // A world record is also a personal best — both pills show, side by side.
+  if (data.personalBest) {
     const b = document.createElement('div');
     b.className = 'badge badge-personal';
-    b.innerHTML = ICONS.star + ' NEW PERSONAL BEST';
+    b.innerHTML = ICONS.star + ' NEW PB';
     badges.appendChild(b);
   }
 
@@ -91,9 +258,15 @@ function showCapture(data) {
     const diff = spd - data.prevBest;
     const b = document.createElement('div');
     b.className = 'badge badge-improvement';
-    b.innerHTML = ICONS.arrow + ` Personal best: ${data.prevBest} ${cardUnit}`;
+    b.innerHTML = ICONS.arrow + ` PB ${data.prevBest} ${cardUnit}`;
     badges.appendChild(b);
   }
+
+  // Collapse the record group when neither pill fired, and drop the whole
+  // plate pill when there is nothing at all to show in it.
+  const hasRecords = capGlobal.classList.contains('show') || badges.children.length > 0;
+  capRecords.classList.toggle('empty', !hasRecords);
+  capVehicle.style.display = (data.plate || hasRecords) ? '' : 'none';
 
   // Show card
   capture.classList.remove('hiding');
@@ -171,6 +344,9 @@ window.addEventListener('message', e => {
     case 'theme':
       applyTheme(msg.theme);
       break;
+    case 'minimap':
+      applyMinimap(msg.minimap);
+      break;
     case 'capture':
       showCapture(msg);
       break;
@@ -212,6 +388,8 @@ document.getElementById('close-records-btn').addEventListener('click', hideRecor
     cameraName: 'Vespucci Blvd',
     speed: 168,
     unit: 'KM/H',
+    plate: '46EEK572',
+    plateIndex: 0,
     personalBest: true,
     globalRecord: false,
     prevBest: 152,
@@ -245,7 +423,7 @@ document.getElementById('close-records-btn').addEventListener('click', hideRecor
   const dock = document.createElement('div');
   dock.style.cssText = 'position:fixed;top:12px;left:12px;z-index:9999;pointer-events:auto;';
   dock.appendChild(bar('▶ Capture',  () => showCapture(MOCK_CAPTURE)));
-  dock.appendChild(bar('★ Global',   () => showCapture({ ...MOCK_CAPTURE, cameraName: 'Route 68', speed: 231, globalRecord: true, personalBest: false })));
+  dock.appendChild(bar('★ Global',   () => showCapture({ ...MOCK_CAPTURE, cameraName: 'Route 68', speed: 231, globalRecord: true, personalBest: false, plate: 'SPZ 001', plateIndex: 1 })));
   dock.appendChild(bar('🏁 Records',  () => showRecords(MOCK_RECORDS)));
   dock.appendChild(bar('✕ Hide',     () => { hideCapture(); recordPanel.classList.remove('visible'); }));
   document.body.appendChild(dock);

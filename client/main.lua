@@ -16,6 +16,42 @@ AddEventHandler('SPZ:themeUpdated', function(theme) pushSpeedcamTheme(theme) end
 
 local inZone      = {}   -- [camId] = true while player is inside radius
 local onCooldown  = {}   -- [camId] = true while cooling down after capture
+local snapshot    = {}   -- [camId] = plate/vehicle data grabbed at trigger time
+
+-- ── Minimap anchor ────────────────────────────────────────────────────────────
+-- The capture card matches the GTA minimap's exact rect. Safezone is a user
+-- setting, so recompute periodically and push fractions to the NUI.
+
+local function GetMinimapRect()
+    local safeZone    = GetSafeZoneSize()
+    local aspectRatio = GetAspectRatio(false)
+    local resX, resY  = GetActiveScreenResolution()
+
+    local width   = (resX / (4 * aspectRatio)) / resX
+    local height  = (resY / 5.674) / resY
+    local leftX   = (resX * (0.05 * (math.abs(safeZone - 1.0) * 10))) / resX
+    local bottomY = 1.0 - (resY * (0.05 * (math.abs(safeZone - 1.0) * 10))) / resY
+
+    return {
+        left   = leftX,
+        width  = width,
+        top    = bottomY - height,
+        bottom = bottomY,
+    }
+end
+
+CreateThread(function()
+    local last
+    while true do
+        local m = GetMinimapRect()
+        local key = ("%f|%f|%f"):format(m.left, m.width, m.top)
+        if key ~= last then
+            last = key
+            SendNUIMessage({ type = 'minimap', minimap = m })
+        end
+        Wait(2000)
+    end
+end)
 
 -- ── Detection loop (adaptive sleep) ──────────────────────────────────────────
 -- When far from all cameras: sleeps 1000ms (cheap background check).
@@ -50,7 +86,16 @@ Citizen.CreateThread(function()
                     local minSpeed = cam.minSpeedKmh or Config.MinSpeedKmh
 
                     if speedKmh >= minSpeed then
-                        TriggerServerEvent("spz-speedcam:capture", cam.id, speedKmh, GetEntityModel(vehicle))
+                        local model = GetEntityModel(vehicle)
+
+                        -- Grab the plate as it was when the shot fired — the player
+                        -- may swap vehicles before the server answers.
+                        snapshot[cam.id] = {
+                            plate      = (GetVehicleNumberPlateText(vehicle) or ''):gsub('%s+$', ''),
+                            plateIndex = GetVehicleNumberPlateTextIndex(vehicle),
+                        }
+
+                        TriggerServerEvent("spz-speedcam:capture", cam.id, speedKmh, model)
 
                         onCooldown[cam.id] = true
                         SetTimeout(Config.CooldownMs, function()
@@ -79,9 +124,14 @@ RegisterNetEvent("spz-speedcam:captured", function(data)
         displaySpeed = math.floor(data.speedKmh)
     end
 
+    local snap = snapshot[data.cameraId]
+    snapshot[data.cameraId] = nil
+
     SendNUIMessage({
         type          = "capture",
         cameraName    = data.cameraName,
+        plate         = snap and snap.plate or nil,
+        plateIndex    = snap and snap.plateIndex or 0,
         speed         = displaySpeed,
         unit          = Config.Units == 'mph' and 'MPH' or 'KM/H',
         personalBest  = data.isPersonalBest,

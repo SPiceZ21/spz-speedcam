@@ -30,6 +30,7 @@ files {
   'ui/style.css',
   'ui/script.js',
   'ui/fonts/Panchang-Variable.ttf',
+  'ui/plates/*.png',
 }
 
 dependencies {
