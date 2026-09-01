@@ -191,6 +191,7 @@ RegisterCommand(Config.RecordsCommand, function()
     end, {})
 end, false)
 
+-- Registry: Docs/keybinds.md
 RegisterKeyMapping(Config.RecordsCommand, "Speed Camera Records", "keyboard", "F7")
 
 RegisterNUICallback("closeRecords", function(_, cb)
