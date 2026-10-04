@@ -3,7 +3,7 @@ game 'gta5'
 
 name 'spz-speedcam'
 description 'SPiceZ-Core — Speed camera network with records'
-version '1.0.0'
+version '1.0.1'
 author 'SPiceZ-Core'
 
 shared_scripts {
