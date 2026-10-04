@@ -3,7 +3,7 @@
 Citizen.CreateThread(function()
     -- ── Schema ────────────────────────────────────────────────────────────────
 
-    -- Schema (speedcam_bests) is owned by spz-core/migrations/003_module_tables.sql
+    -- Schema (speedcam_bests) is owned by spz-core/migrations/core/003_module_tables.sql
 
     -- ── Capture event (Client → Server) ──────────────────────────────────────
 
