@@ -40,7 +40,3 @@ dependencies {
   'oxmysql',
 }
 
-exports {
-  'GetCameraRecords',
-  'GetTopSpeed',
-}

@@ -35,10 +35,7 @@ profile and the global record for that camera.
 
 ## Exports
 
-| Export | Description |
-|---|---|
-| `GetCameraRecords` | Records for a camera |
-| `GetTopSpeed` | Top recorded speed |
+None.
 
 ## Commands
 

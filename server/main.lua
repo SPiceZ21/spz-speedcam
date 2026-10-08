@@ -86,40 +86,6 @@ Citizen.CreateThread(function()
 
     -- ── SPZ Callbacks ─────────────────────────────────────────────────────────
 
-    -- Get top N speeds for a specific camera
-    lib.callback.register("spz-speedcam:getCameraRecords", function(source, data)
-        local camId = data and data.cameraId
-        local limit = math.min(data and data.limit or 10, 50)
-
-        if camId then
-            local rows = MySQL.query.await([[
-                SELECT sb.speed_kmh, sb.vehicle_model, sb.updated_at,
-                       p.username AS player_name
-                FROM speedcam_bests sb
-                JOIN players p ON p.id = sb.player_id
-                WHERE sb.camera_id = ?
-                ORDER BY sb.speed_kmh DESC
-                LIMIT ?
-            ]], { camId, limit })
-            return rows or {}
-        else
-            -- All cameras: global record per camera
-            local rows = MySQL.query.await([[
-                SELECT sb.camera_id, sb.speed_kmh, sb.vehicle_model, sb.updated_at,
-                       p.username AS player_name
-                FROM speedcam_bests sb
-                JOIN players p ON p.id = sb.player_id
-                WHERE (sb.camera_id, sb.speed_kmh) IN (
-                    SELECT camera_id, MAX(speed_kmh)
-                    FROM speedcam_bests
-                    GROUP BY camera_id
-                )
-                ORDER BY sb.speed_kmh DESC
-            ]], {})
-            return rows or {}
-        end
-    end)
-
     -- Get player's personal bests across all cameras
     lib.callback.register("spz-speedcam:getPersonalBests", function(source)
         local ok, profile = pcall(function() return exports["spz-identity"]:GetProfile(source) end)
@@ -135,24 +101,4 @@ Citizen.CreateThread(function()
     end)
 
     print("^2[spz-speedcam] Server ready — " .. #SpeedCams .. " cameras active^7")
-end)
-
--- ── Server exports ────────────────────────────────────────────────────────────
-
-exports("GetCameraRecords", function(camId, limit)
-    if not camId then return {} end
-    local rows = MySQL.query.await(
-        "SELECT * FROM speedcam_bests WHERE camera_id = ? ORDER BY speed_kmh DESC LIMIT ?",
-        { camId, limit or 10 }
-    )
-    return rows or {}
-end)
-
-exports("GetTopSpeed", function(camId)
-    if not camId then return nil end
-    local rows = MySQL.query.await(
-        "SELECT MAX(speed_kmh) AS top FROM speedcam_bests WHERE camera_id = ?",
-        { camId }
-    )
-    return rows and rows[1] and rows[1].top or nil
 end)
