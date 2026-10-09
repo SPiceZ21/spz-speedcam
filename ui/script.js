@@ -211,6 +211,21 @@ function renderPlate(plate, index) {
   drawPlate(text, index);
 }
 
+// Driver headshot: a runtime texture the client registered for this capture.
+const faceEl = document.getElementById('cap-face');
+const profileEl = document.getElementById('cap-profile');
+const topRowEl = document.querySelector('.cap-pills');
+function setFace(on) {
+  profileEl.classList.toggle('empty', !on);
+  topRowEl.classList.toggle('no-face', !on);
+}
+function renderFace(txd) {
+  if (!txd) { setFace(false); faceEl.removeAttribute('src'); return; }
+  faceEl.onerror = () => setFace(false);
+  faceEl.src = `https://nui-img/${txd}/${txd}?t=${Date.now()}`;
+  setFace(true);
+}
+
 // ── Capture card ──────────────────────────────────────────────────────────────
 
 function showCapture(data) {
@@ -232,6 +247,7 @@ function showCapture(data) {
   camLocation.textContent = data.cameraName || 'Unknown Location';
 
   renderPlate(data.plate, data.plateIndex);
+  renderFace(data.headshot);
 
   // World-record tag — floats ABOVE the box, not inside it
   const capGlobal = document.getElementById('cap-global');
@@ -266,7 +282,10 @@ function showCapture(data) {
   // plate pill when there is nothing at all to show in it.
   const hasRecords = capGlobal.classList.contains('show') || badges.children.length > 0;
   capRecords.classList.toggle('empty', !hasRecords);
-  capVehicle.style.display = (data.plate || hasRecords) ? '' : 'none';
+  // No plate: hide its box; the picture keeps its one-third width.
+  const hasPlate = !!(data.plate && String(data.plate).trim());
+  capVehicle.style.display = hasPlate ? '' : 'none';
+  topRowEl.classList.toggle('no-plate', !hasPlate);
 
   // Show card
   capture.classList.remove('hiding');

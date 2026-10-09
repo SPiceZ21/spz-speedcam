@@ -14,17 +14,16 @@
   <!-- Capture card — wide rectangle above the GTA minimap -->
   <div id="capture">
 
-    <!-- Plate + record pills float above the box, outside the card body -->
+    <!-- Top row, above the info card: the plate (2:1, two thirds of the
+         width) and the driver's profile picture (square, same height). -->
     <div class="cap-pills">
       <div class="cap-vehicle" id="cap-vehicle">
         <!-- Real in-game plate texture + font atlas, drawn to canvas -->
         <canvas class="plate" id="plate" width="512" height="256"></canvas>
-
-        <!-- record pills sit beside the plate -->
-        <div class="cap-records" id="cap-records">
-          <div class="cap-global" id="cap-global"></div>
-          <div class="badges" id="badges"></div>
-        </div>
+      </div>
+      <!-- Headshot of the driver's character (game-rendered ped headshot) -->
+      <div class="cap-profile" id="cap-profile">
+        <img class="cap-face" id="cap-face" alt="">
       </div>
     </div>
 
@@ -42,6 +41,12 @@
         <span class="speed-value" id="speed-value">0</span>
         <span class="speed-unit" id="speed-unit">KM/H</span>
       </div>
+    </div>
+
+    <!-- Record pills (NEW WR / NEW PB / improvement), second line of the info card -->
+    <div class="cap-records" id="cap-records">
+      <div class="cap-global" id="cap-global"></div>
+      <div class="badges" id="badges"></div>
     </div>
 
     <div class="dismiss-bar">

@@ -114,8 +114,8 @@ html, body {
 .cap-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: 8px;
+  padding: 9px 12px;
 }
 .cap-speed {
   display: flex;
@@ -458,58 +458,66 @@ html, body {
 }
 
 /* ── Wide-bar sizing overrides ─────────────────────────────── */
-#capture .cam-icon { width: 18px; height: 18px; border-radius: 4px; }
-#capture .cam-icon svg { width: 10px; height: 10px; }
+#capture .cam-icon { width: 22px; height: 22px; border-radius: 5px; }
+#capture .cam-icon svg { width: 13px; height: 13px; }
 #capture .cam-location {
   padding: 0;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--gray-200);
+  color: var(--gray-50);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#capture .speed-value { font-size: 22px; line-height: 1; letter-spacing: -0.5px; }
-#capture .speed-unit  { font-size: 8px; margin: 0; }
+#capture .speed-value { font-size: 28px; line-height: 1; letter-spacing: -0.5px; }
+#capture .speed-unit  { font-size: 11px; margin: 0 0 0 2px; color: var(--gray-200); }
 
 /* badges are pills stacked above the card, not part of the card body */
 #capture .badges { flex-direction: row; padding: 0; gap: 4px; margin: 0; width: auto; }
 #capture .badges:empty { display: none; }
 
-/* ── Plate row: number plate + record pills ────────────────── */
+/* ── Top row: plate + profile picture ──────────────────────── */
 
-/* Standalone pill above the card: plate left, record pills right. */
-.cap-vehicle {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  width: 100%;
+/* Plate is a canvas painted with the game's own plate texture and glyph
+   atlas (see drawPlate in script.js) — 256x128 source, so 2:1. */
+.cap-vehicle,
+.cap-profile {
   min-width: 0;
-  padding: 3px 7px 3px 4px;
+  padding: 4px;
   border-radius: 5px;
   background: rgba(8, 10, 13, 0.94);
   border: 1px solid rgba(255,255,255,0.08);
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
-
-/* Plate is a canvas painted with the game's own plate texture and glyph
-   atlas (see drawPlate in script.js) — 256x128 source, so 2:1. */
 .plate {
-  flex-shrink: 0;
   display: block;
-  height: 38px;
-  width: 76px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 1;
   border-radius: 3px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.55);
+}
+
+/* Driver headshot: a square the same height as the plate. */
+.cap-profile { display: flex; }
+.cap-profile.empty { display: none; }
+.cap-face {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+  background: radial-gradient(circle at 50% 35%, rgba(255,255,255,0.12), rgba(20,22,27,1) 75%);
 }
 
 /* Standalone pills now — each carries its own dark backing so it stays
    legible floating over the game world. */
 #capture .badge {
-  padding: 3px 7px;
-  font-size: 8px;
+  padding: 4px 8px;
+  font-size: 10.5px;
   border-radius: 4px;
   white-space: nowrap;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
@@ -521,28 +529,31 @@ html, body {
   background: linear-gradient(rgba(255,255,255,0.05), rgba(255,255,255,0.05)), rgba(8, 10, 13, 0.94);
 }
 
-/* ── Record pills (float above the box, outside the card) ──── */
+/* ── Top row, floating above the info card ───────────────────
+   Grid 2fr / 1fr: the plate (2:1) is then exactly as tall as the square
+   profile picture beside it. With no picture the plate takes the full row. */
 .cap-pills {
   position: absolute;
   left: 0;
-  bottom: 100%;                 /* sit directly above the card */
+  bottom: 100%;
   margin-bottom: 6px;
-  width: 100%;                  /* pills span the card / minimap width */
-  display: flex;
-  flex-direction: column;
+  width: 70%;                   /* plate + picture: smaller than the card, left-aligned */
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 6px;
   align-items: stretch;
-  gap: 4px;
 }
+.cap-pills.no-face { grid-template-columns: 1fr; }
+.cap-pills.no-plate { grid-template-columns: 1fr 2fr; }
 
-/* Record pills sit beside the plate, on the same line. */
+/* Record pills: second line inside the info card. */
 .cap-records {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 4px;
-  flex: 1;
+  padding: 0 10px 7px;
   min-width: 0;
 }
 .cap-records.empty { display: none; }
@@ -553,14 +564,14 @@ html, body {
   gap: 5px;
   width: max-content;           /* small — only as wide as the text */
   max-width: 100%;
-  padding: 3px 8px;
+  padding: 4px 9px;
   line-height: 1.6;             /* match the mono badge pills' height */
   border-radius: 4px;
   background: linear-gradient(rgba(var(--orange-rgb), 0.18), rgba(var(--orange-rgb), 0.18)), rgba(8, 10, 13, 0.94);
   border: 1px solid rgba(var(--orange-rgb), 0.45);
   color: var(--orange);
   font-family: var(--font-display);
-  font-size: 8px;
+  font-size: 10.5px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -571,7 +582,7 @@ html, body {
   display: inline-flex;
   animation: cap-global-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
-.cap-global svg { width: 10px; height: 10px; }
+.cap-global svg { width: 12px; height: 12px; }
 @keyframes cap-global-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }

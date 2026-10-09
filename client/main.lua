@@ -115,6 +115,31 @@ end)
 
 -- ── Server responses ──────────────────────────────────────────────────────────
 
+-- ── Character headshot ────────────────────────────────────────────────────────
+-- The game renders a headshot of any ped into a runtime texture; NUI shows it
+-- through https://nui-img/<txd>/<txd>. One at a time, released after the card
+-- has gone, because the game only has a handful of headshot slots.
+local headshot = nil
+
+local function releaseHeadshot()
+    if headshot then UnregisterPedheadshot(headshot); headshot = nil end
+end
+
+local function takeHeadshot()
+    releaseHeadshot()
+    local ped = PlayerPedId()
+    if not DoesEntityExist(ped) then return nil end
+    -- Transparent background so the face sits cleanly on the card.
+    local h = RegisterPedheadshotTransparent(ped)
+    local deadline = GetGameTimer() + 1500
+    while not IsPedheadshotReady(h) or not IsPedheadshotValid(h) do
+        if GetGameTimer() > deadline then UnregisterPedheadshot(h); return nil end
+        Wait(0)
+    end
+    headshot = h
+    return GetPedheadshotTxdString(h)
+end
+
 RegisterNetEvent("spz-speedcam:captured", function(data)
     -- Build display speed string
     local displaySpeed
@@ -140,7 +165,16 @@ RegisterNetEvent("spz-speedcam:captured", function(data)
                             Config.Units == 'mph' and data.prevPersonalBest * 0.621371 or data.prevPersonalBest
                         ) or nil,
         duration      = Config.CardDurationMs,
+        headshot      = takeHeadshot(),
     })
+    local mine = headshot
+    SetTimeout((Config.CardDurationMs or 6000) + 1500, function()
+        if headshot == mine then releaseHeadshot() end
+    end)
+end)
+
+AddEventHandler("onResourceStop", function(res)
+    if res == GetCurrentResourceName() then releaseHeadshot() end
 end)
 
 RegisterNetEvent("spz-speedcam:newGlobalRecord", function(data)
