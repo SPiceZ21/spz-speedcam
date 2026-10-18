@@ -205,6 +205,10 @@ local function CloseRecordsNUI()
     SendNUIMessage({ type = "closeRecords" })
 end
 
+-- spz-tutorial closes whatever it opened when the tour moves on.
+AddEventHandler("spz-tutorial:closeUI", function() if isRecordsOpen then CloseRecordsNUI() end end)
+
+
 RegisterCommand(Config.RecordsCommand, function()
     if isRecordsOpen then
         CloseRecordsNUI()
