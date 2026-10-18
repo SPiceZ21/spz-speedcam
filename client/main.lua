@@ -230,7 +230,10 @@ RegisterCommand(Config.RecordsCommand, function()
 end, false)
 
 -- Registry: Docs/keybinds.md
-RegisterKeyMapping(Config.RecordsCommand, "Speed Camera Records", "keyboard", "F7")
+-- The key is on its own command (old binding on "speedrecords" was F7, now the
+-- minigame hub); the typed /speedrecords still works.
+RegisterCommand(Config.RecordsKeyCommand, function() ExecuteCommand(Config.RecordsCommand) end, false)
+RegisterKeyMapping(Config.RecordsKeyCommand, "Speed Camera Records", "keyboard", Config.RecordsKey)
 
 RegisterNUICallback("closeRecords", function(_, cb)
     isRecordsOpen = false

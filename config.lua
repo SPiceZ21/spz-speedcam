@@ -12,6 +12,8 @@ Config.CardDurationMs  = 6000    -- how long the capture card stays on screen
 
 -- Records command
 Config.RecordsCommand  = 'speedrecords'
+Config.RecordsKeyCommand = 'speedcam_records'   -- key mapping command (see client/main.lua)
+Config.RecordsKey      = 'F2'                   -- was F7; F7 is now the minigame hub
 
 -- Map blips for every speed camera.
 Config.ShowBlips   = true
