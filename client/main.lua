@@ -232,8 +232,10 @@ end, false)
 -- Registry: Docs/keybinds.md
 -- The key is on its own command (old binding on "speedrecords" was F7, now the
 -- minigame hub); the typed /speedrecords still works.
+-- No default key any more: speed records live under Leaderboard in the quick
+-- menu (Z), and /speedrecords still works. Players can still bind one.
 RegisterCommand(Config.RecordsKeyCommand, function() ExecuteCommand(Config.RecordsCommand) end, false)
-RegisterKeyMapping(Config.RecordsKeyCommand, "Speed Camera Records", "keyboard", Config.RecordsKey)
+RegisterKeyMapping(Config.RecordsKeyCommand, "Speed Camera Records", "keyboard", "")
 
 RegisterNUICallback("closeRecords", function(_, cb)
     isRecordsOpen = false
