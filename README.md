@@ -1,52 +1,45 @@
 # spz-speedcam
 
-> Speed camera network with personal and global records · `v1.0.0`
+> Speed cameras around the map with personal and server records.
+
+![version](https://img.shields.io/badge/version-1.3.0-ff6200) ![SPiceZ-Core](https://img.shields.io/badge/SPiceZ--Core-beta-18181b)
 
 ## Overview
 
-`spz-speedcam` places speed cameras around the map. Pass one above the minimum speed and
-it captures you: a card shows your speed on screen, and the run is stored against your
-profile and the global record for that camera.
+Fixed speed cameras across the map. Drive through one fast to set your best; the fastest pass per camera is the server record.
 
-## Structure
+## Features
 
-| Side | File | Purpose |
-|---|---|---|
-| Shared | `shared/cameras.lua` | Camera positions and metadata |
-| Server | `config.lua` | Detection and record settings |
-| Server | `server/main.lua` | Capture validation, record persistence |
-| Client | `config.lua` | Client-side settings |
-| Client | `client/main.lua` | Proximity detection, capture card |
-| Client | `client/blips.lua` | Map blips |
-| UI | `ui/` | Capture card (plain HTML/CSS/JS) |
+- Camera network with blips
+- Personal bests and server records
+- Flash and readout on pass
+
+## Requirements
+
+| Resource | Type |
+|---|---|
+| `ox_lib` | third-party |
+| `spz-core` | SPiceZ module |
+| `spz-identity` | SPiceZ module |
+| `oxmysql` | third-party |
+
+## Installation
+
+Included in the [txAdmin recipe](https://github.com/SPiceZ21/spz-txrecipe). Manual install:
+
+1. Download `spz-speedcam` from GitHub (latest release, or the repository) into your `resources` folder.
+2. Add to `server.cfg`, after its requirements:
+
+```cfg
+ensure spz-speedcam
+```
 
 ## Configuration
 
-| Key | Default | Meaning |
-|---|---|---|
-| `Config.DetectionRadius` | `18.0` | Trigger sphere around a camera (m) |
-| `Config.NearbyRadius` | `100.0` | Broad radius that enables fast polling (m) |
-| `Config.MinSpeedKmh` | `40.0` | Minimum speed to register a capture |
-| `Config.CooldownMs` | `25000` | Re-capture cooldown per camera per player |
-| `Config.Units` | `'kmh'` | `'kmh'` or `'mph'` |
-| `Config.CardDurationMs` | `6000` | Capture card on-screen time |
-| `Config.RecordsCommand` | `'speedrecords'` | Command that opens the records list |
-| `Config.ShowBlips` | `true` | Draw camera blips on the map |
+- `config.lua`
 
-## Exports
-
-None.
-
-## Commands
-
-| Command | Effect |
-|---|---|
-| `/speedrecords` | Open the records list (name from `Config.RecordsCommand`) |
-
-## Dependencies
-
-`ox_lib` · `spz-identity` · `oxmysql`
+See the file for every option.
 
 ---
 
-Part of [SPiceZ-Core](../README.md) · GPL-3.0
+Part of **SPiceZ-Core** — [documentation](https://github.com/SPiceZ21/Docs) · [all modules](https://github.com/SPiceZ21/Docs/blob/main/modules/README.md)
