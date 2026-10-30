@@ -40,6 +40,14 @@ ensure spz-speedcam
 
 See the file for every option.
 
+## Key binds
+
+Rebindable in **Settings → Key Bindings → FiveM**.
+
+| Action | Default |
+|---|---|
+| Speed camera records | `F2` |
+
 ---
 
 Part of **SPiceZ-Core** — [documentation](https://github.com/SPiceZ21/Docs) · [all modules](https://github.com/SPiceZ21/Docs/blob/main/modules/README.md)
