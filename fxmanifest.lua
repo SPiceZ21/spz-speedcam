@@ -18,12 +18,13 @@ server_scripts {
 }
 
 client_scripts {
+    '@spz-hud/shim.lua',   -- NUI goes through spz-hud
   'config.lua',
   'client/main.lua',
   'client/blips.lua',
 }
 
-ui_page 'ui/index.html'
+-- ui_page 'ui/index.html'  -- drawn by spz-hud now (web/public/apps/spz-speedcam); uncomment + drop the shim to roll back
 
 files {
   'ui/index.html',
@@ -34,6 +35,7 @@ files {
 }
 
 dependencies {
+    'spz-hud',
   'ox_lib',
   'spz-core',
   'spz-identity',
